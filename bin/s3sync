@@ -68,6 +68,7 @@ module S3sync
                                    [ '--cache-control',  GetoptLong::REQUIRED_ARGUMENT ],
                                    [ '--exclude',        GetoptLong::REQUIRED_ARGUMENT ],
                                    [ '--gzip',      	GetoptLong::REQUIRED_ARGUMENT ], 
+								   [ '--vary-accept-encoding', GetoptLong::NO_ARGUMENT ],
                                    [ '--key', '-k',        GetoptLong::REQUIRED_ARGUMENT],
                                    [ '--secret',     GetoptLong::REQUIRED_ARGUMENT],
                                    [ '--make-dirs',	GetoptLong::NO_ARGUMENT ],
@@ -512,6 +513,9 @@ ENDUSAGE
             headers['Content-Encoding'] = "gzip" 
             fType = @path.split('.')[-2]
           end
+          if $S3syncOptions['--vary-accept-encoding']
+		    headers['Vary'] = 'Accept-Encoding';
+		  end
           debug("File extension: #{fType}")
           if defined?($mimeTypes) and fType != '' and (mType = $mimeTypes[fType]) and mType != ''
             debug("Mime type: #{mType}")

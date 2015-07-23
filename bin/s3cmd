@@ -40,7 +40,7 @@ module S3sync
   --help    -h        --verbose     -v     --dryrun    -n
   --ssl     -s        --debug       -d     --progress
   --expires-in=( <# of seconds> | [#d|#h|#m|#s] )
-  
+
 Commands:
 #{name}  listbuckets  [headers]
 #{name}  createbucket  <bucket>  [constraint (i.e. EU)]
@@ -86,7 +86,7 @@ ENDUSAGE
     # ---------- COMMAND PROCESSING ---------- #
     command, path, file = ARGV
 
-    s3cmdUsage("You didn't set up your environment variables; see README.txt") if not($AWS_ACCESS_KEY_ID and $AWS_SECRET_ACCESS_KEY) 
+    s3cmdUsage("You didn't set up your environment variables; see README.txt") if not($AWS_ACCESS_KEY_ID and $AWS_SECRET_ACCESS_KEY)
     s3cmdUsage("Need a command (etc)") if not command
 
     path = '' unless path
@@ -114,7 +114,7 @@ ENDUSAGE
         res = s3cmdList(bucket, path, nil, nil, marker)
         res.entries.each do |item|
           # the s3 commands (with my modified UTF-8 conversion) expect native char encoding input
-          key = Iconv.iconv($S3SYNC_NATIVE_CHARSET, "UTF-8", item.key).join
+          key = item.key.encode($S3SYNC_NATIVE_CHARSET, "UTF-8")
           $stderr.puts "delete #{bucket}:#{key} #{headers.inspect if headers}" if $S3syncOptions['--verbose']
           S3try(:delete, bucket, key) unless $S3syncOptions['--dryrun']
         end
@@ -122,7 +122,7 @@ ENDUSAGE
         more = res.properties.is_truncated
         marker = (res.properties.next_marker)? res.properties.next_marker : ((res.entries.length > 0) ? res.entries.last.key : nil)
         # get this into local charset; when we pass it to s3 that is what's expected
-        marker = Iconv.iconv($S3SYNC_NATIVE_CHARSET, "UTF-8", marker).join if marker
+        marker = marker.encode($S3SYNC_NATIVE_CHARSET, "UTF-8") if marker
       end
 
     when "list"
@@ -138,19 +138,19 @@ ENDUSAGE
         res = s3cmdList(bucket, path, max, delim, marker, headers)
         if delim
           res.common_prefix_entries.each do |item|
-            puts "dir: " + Iconv.iconv($S3SYNC_NATIVE_CHARSET, "UTF-8", item.prefix).join
+            puts "dir: " + item.prefix.encode($S3SYNC_NATIVE_CHARSET, "UTF-8")
           end
           puts "--------------------"
         end
         res.entries.each do |item|
-          puts Iconv.iconv($S3SYNC_NATIVE_CHARSET, "UTF-8", item.key).join
+          puts item.key.encode($S3SYNC_NATIVE_CHARSET, "UTF-8")
         end
         if res.properties.is_truncated
           printf "More? Y/n: "
           more = (STDIN.gets.match('^[Yy]?$'))
           marker = (res.properties.next_marker)? res.properties.next_marker : ((res.entries.length > 0) ? res.entries.last.key : nil)
           # get this into local charset; when we pass it to s3 that is what's expected
-          marker = Iconv.iconv($S3SYNC_NATIVE_CHARSET, "UTF-8", marker).join if marker
+          marker = marker.encode($S3SYNC_NATIVE_CHARSET, "UTF-8") if marker
         else
           more = false
         end
@@ -264,7 +264,7 @@ ENDUSAGE
         res = s3cmdList(bucket, path, nil, nil, marker)
         res.entries.each do |item|
           # the s3 commands (with my modified UTF-8 conversion) expect native char encoding input
-          path = Iconv.iconv($S3SYNC_NATIVE_CHARSET, "UTF-8", item.key).join
+          path = item.key.encode($S3SYNC_NATIVE_CHARSET, "UTF-8")
 
           file = path.gsub(src_path, dest_key)
 
@@ -284,7 +284,7 @@ ENDUSAGE
         more = res.properties.is_truncated
         marker = (res.properties.next_marker)? res.properties.next_marker : ((res.entries.length > 0) ? res.entries.last.key : nil)
         # get this into local charset; when we pass it to s3 that is what's expected
-        marker = Iconv.iconv($S3SYNC_NATIVE_CHARSET, "UTF-8", marker).join if marker
+        marker = marker.encode($S3SYNC_NATIVE_CHARSET, "UTF-8") if marker
       end
 
     when "headers"
@@ -300,7 +300,7 @@ ENDUSAGE
         res = s3cmdList(bucket, path, nil, nil, marker)
         res.entries.each do |item|
           # the s3 commands (with my modified UTF-8 conversion) expect native char encoding input
-          key = Iconv.iconv($S3SYNC_NATIVE_CHARSET, "UTF-8", item.key).join
+          key = item.key.encode($S3SYNC_NATIVE_CHARSET, "UTF-8")
 
           tmpHeaders = headers.merge({
             "x-amz-copy-source" => "/#{bucket}/#{URI.escape(key)}",
@@ -322,7 +322,7 @@ ENDUSAGE
         more = res.properties.is_truncated
         marker = (res.properties.next_marker)? res.properties.next_marker : ((res.entries.length > 0) ? res.entries.last.key : nil)
         # get this into local charset; when we pass it to s3 that is what's expected
-        marker = Iconv.iconv($S3SYNC_NATIVE_CHARSET, "UTF-8", marker).join if marker
+        marker = marker.encode($S3SYNC_NATIVE_CHARSET, "UTF-8") if marker
       end
 
 

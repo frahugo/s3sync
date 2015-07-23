@@ -78,7 +78,7 @@ module S3
     if not bucket.empty?
       buf << "/#{bucket}"
     end
-    # append the key (it might be empty string) 
+    # append the key (it might be empty string)
     # append a slash regardless
     buf << "/#{path}"
 
@@ -102,7 +102,7 @@ module S3
   # url encode the result of that to protect the string if it's going to
   # be used as a query string parameter.
   def S3.encode(aws_secret_access_key, str, urlencode=false)
-    digest = OpenSSL::Digest::Digest.new('sha1')
+    digest = OpenSSL::Digest.new('sha1')
     b64_hmac =
       Base64.encode64(
                       OpenSSL::HMAC.digest(digest, aws_secret_access_key, str)).strip
@@ -235,9 +235,9 @@ module S3
         # does not make sense for vanity domains
         server = @server
       elsif @calling_format == CallingFormat::SUBDOMAIN
-        server = "#{bucket}.#{@server}" 
+        server = "#{bucket}.#{@server}"
       elsif @calling_format == CallingFormat::VANITY
-        server = bucket 
+        server = bucket
       else
         server = @server
       end
@@ -252,10 +252,10 @@ module S3
       path << "/#{key}"
 
       # build the path_argument string
-      # add the ? in all cases since 
+      # add the ? in all cases since
       # signature and credentials follow path args
       path << '?'
-      path << S3.path_args_hash_to_string(path_args) 
+      path << S3.path_args_hash_to_string(path_args)
 
       http = Net::HTTP.new(server, @port)
       http.use_ssl = @is_secure
@@ -329,15 +329,15 @@ module S3
     # by default, expire in 1 minute
     DEFAULT_EXPIRES_IN = 60
 
-    def initialize(aws_access_key_id, aws_secret_access_key, is_secure=true, 
-                   server=DEFAULT_HOST, port=PORTS_BY_SECURITY[is_secure], 
+    def initialize(aws_access_key_id, aws_secret_access_key, is_secure=true,
+                   server=DEFAULT_HOST, port=PORTS_BY_SECURITY[is_secure],
                    format=CallingFormat::REGULAR)
       @aws_access_key_id = aws_access_key_id
       @aws_secret_access_key = aws_secret_access_key
       @protocol = is_secure ? 'https' : 'http'
       @server = server
       @port = port
-      @calling_format = format 
+      @calling_format = format
       # by default expire
       @expires_in = DEFAULT_EXPIRES_IN
     end
@@ -443,7 +443,7 @@ module S3
       path_args["Signature"] = encoded_canonical.to_s
       path_args["Expires"] = expires.to_s
       path_args["AWSAccessKeyId"] = @aws_access_key_id.to_s
-      arg_string = S3.path_args_hash_to_string(path_args) 
+      arg_string = S3.path_args_hash_to_string(path_args)
 
       return "#{url}/#{key}?#{arg_string}"
     end

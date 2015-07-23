@@ -2,11 +2,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{frahugo-s3sync}
-  s.version = "1.3.8"
+  s.version = "1.4.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["frahugo"]
-  s.date = %q{2010-12-16}
+  s.date = %q{2015-07-23}
   s.email = %q{hugo@cekoya.com}
   s.executables = ["s3sync", "s3cmd"]
   s.extra_rdoc_files = ["README.rdoc"]
@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
   s.rdoc_options = ["--charset=UTF-8"]
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.3.7}
-  s.summary = %q{Fork of s3sync to be compatible with ruby 1.9.}
+  s.summary = %q{Fork of s3sync to be compatible with ruby 1.9 & 2}
   s.test_files = ["test/test_helper.rb", "test/test_s3sync.rb"]
 
   if s.respond_to? :specification_version then

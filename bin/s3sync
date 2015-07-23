@@ -60,18 +60,18 @@ module S3sync
                                    [ '--public-read','-p', GetoptLong::NO_ARGUMENT ],
                                    [ '--delete',			GetoptLong::NO_ARGUMENT ],
                                    [ '--verbose', '-v',	GetoptLong::NO_ARGUMENT ],
-                                   [ '--dryrun',  '-n',	GetoptLong::NO_ARGUMENT ], 
+                                   [ '--dryrun',  '-n',	GetoptLong::NO_ARGUMENT ],
                                    [ '--debug',   '-d',	GetoptLong::NO_ARGUMENT ],
                                    [ '--memory',   '-m',	GetoptLong::NO_ARGUMENT ],
                                    [ '--progress',	GetoptLong::NO_ARGUMENT ],
                                    [ '--expires',        GetoptLong::REQUIRED_ARGUMENT ],
                                    [ '--cache-control',  GetoptLong::REQUIRED_ARGUMENT ],
                                    [ '--exclude',        GetoptLong::REQUIRED_ARGUMENT ],
-                                   [ '--gzip',      	GetoptLong::REQUIRED_ARGUMENT ], 
+                                   [ '--gzip',      	GetoptLong::REQUIRED_ARGUMENT ],
                                    [ '--key', '-k',        GetoptLong::REQUIRED_ARGUMENT],
                                    [ '--secret',     GetoptLong::REQUIRED_ARGUMENT],
                                    [ '--make-dirs',	GetoptLong::NO_ARGUMENT ],
-                                   [ '--no-md5',	GetoptLong::NO_ARGUMENT ]           
+                                   [ '--no-md5',	GetoptLong::NO_ARGUMENT ]
                                    )
 
     def S3sync.usage(message = nil)
@@ -79,11 +79,11 @@ module S3sync
       name = $0.split('/').last
       $stderr.puts <<-ENDUSAGE
 #{name} [options] <source> <destination>\t\tversion #{$S3SYNC_VERSION}
-  --help    -h          --verbose     -v     --dryrun    -n	
+  --help    -h          --verbose     -v     --dryrun    -n
   --ssl     -s          --recursive   -r     --delete
   --public-read -p      --expires="<exp>"    --cache-control="<cc>"
   --exclude="<regexp>"  --progress           --debug   -d
-  --key     -k          --secret      -s     --make-dirs           
+  --key     -k          --secret      -s     --make-dirs
   --no-md5  --gzip
 One of <source> or <destination> must be of S3 format, the other a local path.
 Reminders:
@@ -108,13 +108,13 @@ ENDUSAGE
     if $S3syncOptions['--key']
       $AWS_ACCESS_KEY_ID = $S3syncOptions['--key']
     end
-    
+
     if $S3syncOptions['--secret']
       $AWS_SECRET_ACCESS_KEY = $S3syncOptions['--secret']
     end
 
     # ---------- CONNECT ---------- #
-    S3sync::s3trySetup 
+    S3sync::s3trySetup
 
     # ---------- PREFIX PROCESSING ---------- #
     def S3sync.s3Prefix?(pre)
@@ -122,7 +122,7 @@ ENDUSAGE
       pre.include?(':') and not pre.match('^[A-Za-z]:[\\\\/]')
     end
     sourcePrefix, destinationPrefix = ARGV
-    usage("You didn't set up your environment variables; see README.txt") if not($AWS_ACCESS_KEY_ID and $AWS_SECRET_ACCESS_KEY) 
+    usage("You didn't set up your environment variables; see README.txt") if not($AWS_ACCESS_KEY_ID and $AWS_SECRET_ACCESS_KEY)
     usage('Need a source and a destination') if sourcePrefix == nil or destinationPrefix == nil
     usage('Both arguments can\'t be on S3') if s3Prefix?(sourcePrefix) and s3Prefix?(destinationPrefix)
     usage('One argument must be on S3') if !s3Prefix?(sourcePrefix) and !s3Prefix?(destinationPrefix)
@@ -161,7 +161,7 @@ ENDUSAGE
     # canonicalize the local stuff
     # but that can kill a trailing slash, which we need to preserve long enough to know whether we mean "the dir" or "its contents"
     # it will get re-stripped by the local generator after expressing this knowledge
-    localTrailingSlash = localPrefix.match(%r{/$}) 
+    localTrailingSlash = localPrefix.match(%r{/$})
     localPrefix.replace(File.expand_path(localPrefix))
     localPrefix += '/' if localTrailingSlash
     debug("localPrefix #{localPrefix}")
@@ -181,7 +181,7 @@ ENDUSAGE
         debug("localTreeRecurse #{prefix} #{path}")
         #if $S3syncOptions['--memory']
         #	$stderr.puts "Starting local recurse"
-        #	stats = ostats stats 
+        #	stats = ostats stats
         #end
         d = nil
         begin
@@ -198,7 +198,7 @@ ENDUSAGE
         # the following sleight of hand is to make the recursion match the way s3 sorts
         # take for example the directory 'foo' and the file 'foo.bar'
         # when we encounter the dir we would want to recurse into it
-        # but S3 would just say 'period < slash' and sort 'foo.bar' between the dir node 
+        # but S3 would just say 'period < slash' and sort 'foo.bar' between the dir node
         # and the contents in that 'dir'
         #
         # so the solution is to not recurse into the directory until the point where
@@ -252,7 +252,7 @@ ENDUSAGE
         end
         #if $S3syncOptions['--memory']
         #	$stderr.puts "Ending local recurse"
-        #	stats = ostats stats 
+        #	stats = ostats stats
         #end
       end
       # a bit of a special case for local, since "foo/" and "foo" are essentially treated the same by file systems
@@ -266,10 +266,10 @@ ENDUSAGE
       else
         # trailing slash, so ignore the root itself, and just go into the first level
         localPrefixTrim.sub!(%r{/$}, "") # strip the slash because of how we do local node slash accounting in the recurse above
-        localTreeRecurse(g, localPrefixTrim, "") 
+        localTreeRecurse(g, localPrefixTrim, "")
       end
     end
-    
+
     # a generator that will return the nodes in the S3 tree one by one
     # sorted and decorated for easy comparison with the local tree
     s3Tree = Enumerator.new do |g|
@@ -305,16 +305,16 @@ ENDUSAGE
           # get rid of the big s3 objects asap, just save light-weight nodes and strings
           items = tItems.collect do |item|
             if item.respond_to?('key')
-              key = Iconv.iconv($S3SYNC_NATIVE_CHARSET, "UTF-8", item.key).join
+              key = item.key.encode($S3SYNC_NATIVE_CHARSET, "UTF-8")
               Node.new(key, item.size, item.etag, item.last_modified)
             else
-              Iconv.iconv($S3SYNC_NATIVE_CHARSET, "UTF-8", item.prefix).join
+              item.prefix.encode($S3SYNC_NATIVE_CHARSET, "UTF-8")
             end
           end
           nextPage = d.properties.is_truncated
           marker = (d.properties.next_marker)? d.properties.next_marker : ((d.entries.length > 0)? d.entries.last.key : '')
           # get this into native char set (because when we feed it back to s3 that's what it will expect)
-          marker = Iconv.iconv($S3SYNC_NATIVE_CHARSET, "UTF-8", marker).join
+          marker = marker.encode($S3SYNC_NATIVE_CHARSET, "UTF-8")
           tItems = nil
           d = nil # get rid of this before recursing; it's big
           item = nil
@@ -338,7 +338,7 @@ ENDUSAGE
                 debug("skipping prefix #{excludePath} due to --exclude")
               else
                 debug("prefix found: #{partialPath}")
-                s3TreeRecurse(g, bucket, prefix, partialPath) if $S3syncOptions['--recursive'] 
+                s3TreeRecurse(g, bucket, prefix, partialPath) if $S3syncOptions['--recursive']
               end
             end
           end
@@ -386,7 +386,7 @@ ENDUSAGE
         if $S3syncOptions['--delete']
           if destinationNode.directory?
             # have to wait
-            nodesToDelete.push(destinationNode) 
+            nodesToDelete.push(destinationNode)
           else
             puts "Remove node #{destinationNode.name}" if $S3syncOptions['--verbose']
             destinationNode.delete unless $S3syncOptions['--dryrun']
@@ -398,7 +398,7 @@ ENDUSAGE
           puts "Update node #{sourceNode.name}" if $S3syncOptions['--verbose']
           destinationNode.updateFrom(sourceNode) unless $S3syncOptions['--dryrun']
         elsif $S3syncOptions['--debug']
-          $stderr.puts "Node #{sourceNode.name} unchanged" 
+          $stderr.puts "Node #{sourceNode.name} unchanged"
         end
         sourceNode = sourceNode.nil? ? nil : sourceTree.next rescue nil
         destinationNode = destinationNode.nil? ? nil : destinationTree.next rescue nil
@@ -509,7 +509,7 @@ ENDUSAGE
           headers['Cache-Control'] = $S3syncOptions['--cache-control'] if $S3syncOptions['--cache-control']
           fType = @path.split('.').last
           if ($S3syncOptions['--gzip'] || "gz").split(",").include? fType
-            headers['Content-Encoding'] = "gzip" 
+            headers['Content-Encoding'] = "gzip"
             fType = @path.split('.')[-2]
           end
           debug("File extension: #{fType}")
@@ -644,12 +644,12 @@ ENDUSAGE
           f = File.open(fName, 'wb')
           f = ProgressStream.new(f, fromNode.size) if $S3syncOptions['--progress']
 
-          fromNode.to_stream(f) 
+          fromNode.to_stream(f)
           f.close
         end
         # get original item out of the way
         File.unlink(@path) if File.exist?(@path)
-        if fromNode.symlink? 
+        if fromNode.symlink?
           linkTo = ''
           File.open(fName, 'rb'){|f| linkTo = f.read}
           debug("#{@path} will be a symlink to #{linkTo}")

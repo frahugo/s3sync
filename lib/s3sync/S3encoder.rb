@@ -1,9 +1,9 @@
-# This software code is made available "AS IS" without warranties of any        
-# kind.  You may copy, display, modify and redistribute the software            
-# code either by itself or as incorporated into your code; provided that        
-# you do not remove any proprietary notices.  Your use of this software         
+# This software code is made available "AS IS" without warranties of any
+# kind.  You may copy, display, modify and redistribute the software
+# code either by itself or as incorporated into your code; provided that
+# you do not remove any proprietary notices.  Your use of this software
 # code is at your own risk and you waive any claim against the author
-# with respect to your use of this software code. 
+# with respect to your use of this software code.
 # (c) 2007 s3sync.net
 #
 
@@ -14,7 +14,6 @@
 # to the underlying lib this stuff will need updating.
 
 require 'cgi'
-require 'iconv' # for UTF-8 conversion
 
 # thanks to http://www.redhillconsulting.com.au/blogs/simon/archives/000326.html
 module S3ExtendCGI
@@ -36,10 +35,10 @@ module S3ExtendCGI
 		attr_writer :nativeCharacterEncoding
 		@@useUTF8InEscape = false
 		attr_writer :useUTF8InEscape
-		
+
 		def S3Extend_escape(string)
 			result = string
-			result = Iconv.iconv("UTF-8", @nativeCharacterEncoding, string).join if @useUTF8InEscape 
+			result = string.encode("UTF-8", @nativeCharacterEncoding) if @useUTF8InEscape
 			result = S3Extend_escape_orig(result)
 			result.gsub!(/%2f/i, "/") if @exemptSlashesInEscape
 			result.gsub!("+", "%20") if @usePercent20InEscape
